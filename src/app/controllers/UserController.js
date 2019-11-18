@@ -17,7 +17,34 @@ class UserController {
       email,
       provider,
     });
-  }
+  } // store()
+
+  async update(req, res) {
+    const { email, oldPassword } = req.body;
+
+    const user = await User.findByPk(req.userId);
+
+    if (email !== user.email) {
+      if (await UserController.emailExists(email))
+        return res.status(400).json({
+          error: 'User already exists',
+        });
+    }
+
+    if (oldPassword && !(await user.checkPassword(oldPassword)))
+      return res.status(401).json({
+        message: 'Password does not match',
+      });
+
+    const { id, name, provider } = await user.update(req.body);
+
+    return res.json({
+      id,
+      name,
+      email,
+      provider,
+    });
+  } // update()
 
   static emailExists(email) {
     return User.findOne({
@@ -25,7 +52,7 @@ class UserController {
         email,
       },
     });
-  }
+  } // emailExists()
 }
 
 export default new UserController();
